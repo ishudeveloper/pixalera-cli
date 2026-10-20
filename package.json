@@ -1,0 +1,43 @@
+{
+  "name": "pixalera-cli",
+  "version": "0.2.0",
+  "description": "Pixalera CLI for social media scheduling, publishing and analytics, with an interactive terminal and Claude Code MCP bridge.",
+  "type": "module",
+  "bin": {
+    "pixalera": "bin/pixalera.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "docs"
+  ],
+  "scripts": {
+    "start": "node bin/pixalera.js",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "pixalera",
+    "social-media",
+    "mcp",
+    "cli",
+    "ai-agent",
+    "scheduler",
+    "social-media-scheduling",
+    "post-scheduling",
+    "claude-code",
+    "model-context-protocol",
+    "social-media-analytics"
+  ],
+  "dependencies": {
+    "@inquirer/prompts": "^8.7.4",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "ajv": "^8.20.0"
+  },
+  "devDependencies": {
+    "express": "^5.3.0"
+  }
+}

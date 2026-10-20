@@ -1,0 +1,678 @@
+[
+  {
+    "name": "get_account_overview",
+    "title": "Get account overview",
+    "description": "Get the Pixalera account summary for this API key: name, email, plan, subscription status, AI credits, connected channel count and post counts.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_channels",
+    "title": "List connected channels",
+    "description": "List the social channels connected to this Pixalera account (platform, username, display name). Never returns access tokens.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_posts",
+    "title": "List posts",
+    "description": "List this account's posts — drafts, scheduled and published — with caption, platforms, status and schedule time.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "scheduled",
+            "published",
+            "failed",
+            "all"
+          ],
+          "description": "Filter by post status. Defaults to all."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "How many posts to return (default 20)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_post",
+    "title": "Create a post",
+    "description": "Create a draft, queued, scheduled or immediately published post. Supports every field of the Pixalera composer: media, thumbnail, tags, first comment, post type, SEO fields, auto-DM and platform-specific options.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000,
+          "description": "Post caption / copy."
+        },
+        "platforms": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "type": "string"
+          },
+          "description": "Target platforms, e.g. ['instagram','facebook']. Must already be connected."
+        },
+        "media_urls": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional public media URLs (https only)."
+        },
+        "thumbnail_url": {
+          "type": "string",
+          "description": "Optional custom thumbnail / cover image URL (video, Reels, YouTube)."
+        },
+        "media_type": {
+          "type": "string",
+          "enum": [
+            "image",
+            "video",
+            "text"
+          ],
+          "description": "Media kind. Defaults to image when media_urls are given, else text."
+        },
+        "post_type": {
+          "type": "string",
+          "enum": [
+            "post",
+            "reel",
+            "story",
+            "short",
+            "video"
+          ],
+          "description": "Composer post type. Default post."
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string"
+          },
+          "description": "Hashtags / tags without the # sign."
+        },
+        "first_comment": {
+          "type": "string",
+          "maxLength": 2200,
+          "description": "Optional first comment (Instagram / Facebook)."
+        },
+        "seo_title": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Title / SEO title (YouTube, Pinterest, blog)."
+        },
+        "seo_desc": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Description / SEO description (YouTube, Pinterest, blog)."
+        },
+        "auto_dm": {
+          "type": "boolean",
+          "description": "Turn on the AutoDM trigger for this post."
+        },
+        "notify_mode": {
+          "type": "string",
+          "enum": [
+            "automatic",
+            "notify"
+          ],
+          "description": "automatic = Pixalera publishes; notify = remind the user instead."
+        },
+        "platform_options": {
+          "type": "object",
+          "description": "Platform-specific composer options, keyed by platform, e.g. {\"instagram\":{\"share_to_feed\":true,\"collaborators\":[\"@handle\"],\"location\":\"Delhi\"},\"youtube\":{\"privacy\":\"public\",\"playlist\":\"Shorts\",\"made_for_kids\":false},\"linkedin\":{\"visibility\":\"PUBLIC\"},\"pinterest\":{\"board\":\"Marketing\",\"link\":\"https://...\"},\"x\":{\"thread\":[\"part 2\"]}}",
+          "additionalProperties": true
+        },
+        "schedule_mode": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "time",
+            "next_available",
+            "prioritize",
+            "publish_now"
+          ],
+          "description": "draft = save only; time = use scheduled_at; next_available = first free slot in the channel schedule / queue; prioritize = front of the queue; publish_now = post immediately."
+        },
+        "scheduled_at": {
+          "type": "string",
+          "description": "ISO datetime with offset. Used with schedule_mode \"time\" (or on its own)."
+        },
+        "publish_now": {
+          "type": "boolean",
+          "description": "Deprecated alias for schedule_mode \"publish_now\". Ask the user for confirmation first."
+        }
+      },
+      "required": [
+        "caption",
+        "platforms"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "publish_post_now",
+    "title": "Publish a post now",
+    "description": "Publish an existing draft or scheduled post immediately to all of its selected platforms. Confirm with the user before calling — this posts publicly right away.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_id": {
+          "type": "string",
+          "description": "The post id returned by list_posts or create_post."
+        }
+      },
+      "required": [
+        "post_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "schedule_post",
+    "title": "Schedule an existing post",
+    "description": "Schedule a draft/scheduled post. Use mode \"time\" for an exact moment, \"next_available\" for the first free slot in the channel schedule or queue, or \"prioritize\" to put it at the front of the queue (shifting later posts).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_id": {
+          "type": "string",
+          "description": "The post id returned by list_posts."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "time",
+            "next_available",
+            "prioritize"
+          ],
+          "description": "Default time."
+        },
+        "scheduled_at": {
+          "type": "string",
+          "description": "ISO datetime with offset, in the future (e.g. 2026-09-15T18:30:00+05:30). Required for mode \"time\"."
+        }
+      },
+      "required": [
+        "post_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_queue",
+    "title": "Get the publishing queue",
+    "description": "List upcoming scheduled posts in order, plus the next available slot Pixalera would pick for a given platform.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "description": "Optional platform used to compute the next available slot, e.g. 'instagram'."
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "unschedule_post",
+    "title": "Cancel a schedule",
+    "description": "Move a scheduled post back to draft so it will not publish automatically.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "post_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_post",
+    "title": "Get one post",
+    "description": "Get the full detail of a single post, including publish results, permalink and any failure reason.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "post_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_post",
+    "title": "Update a draft or scheduled post",
+    "description": "Edit the caption or schedule time of a draft/scheduled post. Published posts cannot be edited.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "post_id": {
+          "type": "string",
+          "description": "The post id returned by list_posts."
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "scheduled_at": {
+          "type": "string",
+          "description": "New ISO schedule time (future)."
+        }
+      },
+      "required": [
+        "post_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_ideas",
+    "title": "List content ideas",
+    "description": "List saved content ideas from this account's ideas board with status, platforms, tags and target date.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Optional status filter, e.g. 'draft', 'approved'."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Default 20."
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_idea",
+    "title": "Save a content idea",
+    "description": "Save a new content idea to this account's ideas board.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Short idea title."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000,
+          "description": "Details, hook or script."
+        },
+        "platforms": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string"
+          },
+          "description": "Intended platforms."
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Board column / status. Default 'draft'."
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "target_date": {
+          "type": "string",
+          "description": "Optional target date (YYYY-MM-DD)."
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_idea",
+    "title": "Update a content idea",
+    "description": "Edit an existing idea on the ideas board — title, details, status, platforms, tags, label or target date.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "idea_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "platforms": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string"
+          }
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "target_date": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "idea_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "generate_ideas",
+    "title": "Generate content ideas with AI",
+    "description": "Generate content ideas with Pixalera AI (costs Pixalera AI credits). Only call when the user wants Pixalera to generate them; you can write ideas yourself for free and save them with create_idea.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Topic, niche or campaign angle."
+        },
+        "platform": {
+          "type": "string",
+          "description": "Primary platform, e.g. 'instagram'."
+        },
+        "audience": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Who the content is for."
+        },
+        "tone": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Desired tone of voice."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "How many ideas (default 5)."
+        },
+        "save_to_board": {
+          "type": "boolean",
+          "description": "Save the generated ideas to the ideas board. Default false."
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "convert_idea_to_post",
+    "title": "Turn an idea into a post",
+    "description": "Create a post from an idea on the board. Choose draft, an exact time, the next available queue slot, or the front of the queue.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "idea_id": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "description": "Platforms to post to. Defaults to the idea's own platforms."
+        },
+        "caption": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Override caption. Defaults to the idea's title + details."
+        },
+        "schedule_mode": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "time",
+            "next_available",
+            "prioritize"
+          ],
+          "description": "Default draft."
+        },
+        "scheduled_at": {
+          "type": "string",
+          "description": "ISO datetime for schedule_mode \"time\"."
+        }
+      },
+      "required": [
+        "idea_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_analytics_snapshot",
+    "title": "Get analytics snapshot",
+    "description": "Get the latest stored analytics: followers, reach, impressions and engagement per platform.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "description": "Optional platform filter, e.g. 'instagram'."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30,
+          "description": "Default 10."
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_platform_analytics",
+    "title": "Get live platform analytics",
+    "description": "Fetch live analytics straight from a connected platform: overview (followers, reach, engagement), posts (per-post performance), audience (demographics) or insights. Supported platforms: .",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "description": "Platform name, e.g. instagram, facebook, youtube, threads, pinterest, bluesky, x, linkedin."
+        },
+        "report": {
+          "type": "string",
+          "description": "Default overview."
+        },
+        "channel_id": {
+          "type": "string",
+          "description": "Optional specific connected channel id (see list_channels)."
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90,
+          "description": "Look-back window in days. Default 28."
+        }
+      },
+      "required": [
+        "platform"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_products",
+    "title": "List digital products",
+    "description": "List this account's digital products / link-in-bio store items with price, currency and status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "published",
+            "archived",
+            "all"
+          ],
+          "description": "Default all."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  }
+]

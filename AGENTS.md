@@ -1,0 +1,4 @@
+- Share command schemas between direct CLI and interactive workflows; discover live tools from the authenticated Railway MCP endpoint so unsupported REST routes are never invented.
+- Use the official MCP SDK for remote HTTP and local stdio transports; local Node APIs are intentional because this package runs on the user's machine, not workerd.
+- Never persist command history or expose API keys in logs, documentation or delivery archives; mask login input and require explicit confirmation for mutations.
+- Keep generated README images labeled illustrative; verified terminal captures and mock integration results are not proof of live account publishing.
